@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/postgres</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQL9Dialect</property>
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.username">sa</property>
+        <property name="hibernate.connection.password">123</property>
+        <property name="hibernate.connection.pool_size">1</property>
+        <property name="cache.provider_class">org.hibernate.cache.internal.NoCachingRegionFactory</property>
+        <property name="show_sql">false</property>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <mapping class="respond.fullgameschedule.GameEntry"/>
+        <mapping class="respond.playersgamelogs.Team"/>
+        <mapping class="respond.playersgamelogs.Game"/>
+        <mapping class="respond.playersgamelogs.Player"/>
+        <mapping class="respond.playersgamelogs.PlayerGameLogs"/>
+        <mapping class="respond.playersgamelogs.Stats"/>
+        <mapping class="respond.playersgamelogs.UnitStat"/>
+    </session-factory>
+
+</hibernate-configuration>
