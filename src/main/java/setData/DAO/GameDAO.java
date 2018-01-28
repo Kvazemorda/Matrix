@@ -150,7 +150,6 @@ public class GameDAO {
         double lose = 0;
         double draw = 0;
 
-        Date dateBefore30Days = cal.getTime();
         for(Game game: games){
             int score = getScore(game.getId());
             long diff = Math.abs(gameCurrent.getTime() - game.getDate().getTime());
