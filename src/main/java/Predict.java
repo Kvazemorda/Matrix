@@ -8,11 +8,8 @@ public class Predict {
     public static void main(String[] args) {
         xPredict = new StringBuilder();
         GameDAO gameDAO = new GameDAO();
-
-        new NewWay(gameDAO.getTeam(27),gameDAO.getTeam(15));
-        new NewWay(gameDAO.getTeam(7),gameDAO.getTeam(6));
-        new NewWay(gameDAO.getTeam(9),gameDAO.getTeam(22));
-        new NewWay(gameDAO.getTeam(2),gameDAO.getTeam(23));
+        String date = "2018-01-23";
+        NewWay newWay = new NewWay(date);
         saveFilesToPredict(xPredict);
     }
     private static void saveFilesToPredict(StringBuilder x) {

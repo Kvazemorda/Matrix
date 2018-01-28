@@ -3,9 +3,11 @@ package setData.DAO;
 import Services.HibernateSessionFactory;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import respond.fullgameschedule.GameEntry;
 import respond.playersgamelogs.*;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 public class GameDAO {
@@ -129,6 +131,65 @@ public class GameDAO {
         return listOfPlayerStat;
     }
 
+    public ArrayList<Double> getPreviousStatOfEachPlayerPercent(int idPlayer, Team idTeam,
+                                                                Date gameCurrent){
+        String hql = " select players.game from PlayerGameLogs players " +
+                "where players.game.date < :gameCurrent " +
+                "and players.player.ID = :player " +
+                "order by players.game.date desc";
+
+        Query query = session.createQuery(hql);
+        query.setParameter("player",idPlayer);
+        query.setParameter("gameCurrent", gameCurrent);
+        query.setMaxResults(10);
+
+        ArrayList<Game> games;
+        games = (ArrayList<Game>) query.list();
+
+        double win = 0;
+        double lose = 0;
+        double draw = 0;
+
+        Date dateBefore30Days = cal.getTime();
+        for(Game game: games){
+            int score = getScore(game.getId());
+            long diff = Math.abs(gameCurrent.getTime() - game.getDate().getTime());
+            long diffDays = diff / (24 * 60 * 60 * 1000);
+            if(game.getHomeTeam().equals(idTeam)){
+
+                if (score < 0){
+                    lose = lose + 1/diff;
+                }else if((score) > 0){
+                    win = win + 1/diff;
+                }else {
+                    draw = draw + 1/draw;
+                }
+            }else {
+                if (score < 0){
+                    win = win + 1/diff;
+                }else if((score) > 0){
+                    win = win + 1/diff;
+                }else {
+                    draw = draw + 1/draw;
+                }
+            }
+
+        }
+        Double sizeGame =  (double) games.size();
+        Double winPercent = (win/sizeGame) * 100;
+        Double losePercent = (lose/sizeGame) * 100;
+        Double drawPercent = (draw/sizeGame) * 100;
+        double shoudBeZero  = sizeGame - win - lose - draw;
+        System.out.println("игрок " + idPlayer + " победил " + win + " проиграл " + lose + " сыграл в ничью " + draw +
+        " из " + sizeGame +  " игр " + shoudBeZero);
+        ArrayList<Double> percent = new ArrayList<>();
+        percent.add(winPercent);
+        percent.add(losePercent);
+        percent.add(drawPercent);
+
+        return percent;
+    }
+
 
     public ArrayList<PlayerGameLogs> getPreviousPlayersOfSomeGameForPredict(int idTeam){
         String hql = " select players from PlayerGameLogs players " +
@@ -147,15 +208,15 @@ public class GameDAO {
         return listOfPlayerStat;
     }
 
-    public ArrayList<Player> getPlayers(Team idTeam, Game idGame) {
+    public ArrayList<Player> getPlayers(Team idTeam, GameEntry idGame) {
         String hql = " select players.player from PlayerGameLogs players " +
                 "where players.team = :team " +
-                "and players.game = :game " +
-                "order by players.game.id desc";
+                "and players.game.id = :game " +
+                "order by players.player.position";
 
         Query query = session.createQuery(hql);
         query.setParameter("team",idTeam);
-        query.setParameter("game",idGame);
+        query.setParameter("game",idGame.getId());
         ArrayList<Player> list = new ArrayList<>();
         list.addAll(query.list());
         if(list.size() < 25){

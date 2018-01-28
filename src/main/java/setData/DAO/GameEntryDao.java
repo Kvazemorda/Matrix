@@ -5,7 +5,6 @@ import Services.HibernateSessionFactory;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import respond.fullgameschedule.GameEntry;
-import respond.playersgamelogs.Game;
 
 import java.util.Date;
 import java.util.List;
@@ -31,9 +30,19 @@ public class GameEntryDao {
         session.getTransaction().commit();
     }
 
-    public List<Game> getListBeforeDate(Date date){
-        String hql = "select game from Game game " +
+    public List<GameEntry> getListBeforeDate(Date date){
+        String hql = "select game from GameEntry game " +
                 " where game.date < :date " +
+                " order by game.date desc";
+
+        Query query = session.createQuery(hql);
+        query.setParameter("date", date);
+        return query.list();
+    }
+
+    public List<GameEntry> getListGameTodayDate(Date date){
+        String hql = "select game from GameEntry game " +
+                " where game.date = :date " +
                 " order by game.date desc";
 
         Query query = session.createQuery(hql);

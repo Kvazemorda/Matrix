@@ -9,7 +9,7 @@ public class TeamAndPeriod {
     public ArrayList<String> getListOfPeriod() {
         listOfPeriod = new ArrayList<>();
         listOfPeriod.add("2017-2018");
-        listOfPeriod.add("2016-2017");
+     /*   listOfPeriod.add("2016-2017");
         listOfPeriod.add("2015-2016");
         listOfPeriod.add("2014-2015");
         listOfPeriod.add("2013-2014");
@@ -18,7 +18,7 @@ public class TeamAndPeriod {
         listOfPeriod.add("2010-2011");
         listOfPeriod.add("2009-2010");
         listOfPeriod.add("2008-2009");
-        listOfPeriod.add("2007-2008");
+        listOfPeriod.add("2007-2008");*/
         
         return listOfPeriod;
     }

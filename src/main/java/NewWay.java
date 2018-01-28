@@ -1,3 +1,4 @@
+import respond.fullgameschedule.GameEntry;
 import respond.playersgamelogs.*;
 import setData.DAO.GameDAO;
 import setData.DAO.GameEntryDao;
@@ -14,27 +15,66 @@ import java.util.List;
  * Получить список игр и собрать статистику для каждой игры
  */
 public class NewWay {
-    String dateOfString = "2018-01-02";
+    String dateOfString = "2018-01-27";
     int deepLearning = 2;
     StringBuilder X, y, yScore;
     int yLine, xLine, score;
     int iteration;
 
-    public NewWay(String dateOfString, int deepLearning) {
-        score = 0;
-        X = new StringBuilder();
-        y = new StringBuilder();
-        yScore = new StringBuilder();
-        Date date = getDateFromString(dateOfString);
-        //Метод который сохраняет статистику для игр
-        saveStatisticsForLearning(deepLearning, date);
-    }
+
     public NewWay(Team TeamAway, Team TeamHome){
 
         String datePredict = "2018-01-20";
         Date date = getDateFromString(datePredict);
         writeDataForPredict(TeamAway, TeamHome, date);
         Predict.xPredict.append(System.getProperty("line.separator"));
+    }
+
+    public NewWay(String dateString){
+
+        String datePredict = dateString;
+        Date date = getDateFromString(datePredict);
+        writeDataForPredictPercent(date);
+        Predict.xPredict.append(System.getProperty("line.separator"));
+    }
+
+    private void writeDataForPredictPercent(Date date) {
+        List<GameEntry> listOfGame = new GameEntryDao().getListGameTodayDate(date);
+        System.out.println("game количество "+ listOfGame.size() + " today  " + date.toString());
+        for (int i = 0; i < listOfGame.size(); i++){
+            List<Team> listTeamsOfGame = getTeamsOfThisGame(listOfGame.get(i));
+            System.out.println(" в игре участвовало " + listTeamsOfGame.size() + " команды");
+            for(int j = 0; j < listTeamsOfGame.size(); j++){
+                iteration = 0;
+                System.out.println("Ищем предыдущие игры команды " + listTeamsOfGame.get(j).getID() + " для игры " +
+                        listOfGame.get(i).getId());
+                getStatBeforePesantagePredict(listTeamsOfGame.get(j), listOfGame.get(i), date);
+            }
+            Predict.xPredict.append(System.getProperty("line.separator"));
+        }
+    }
+
+    private void getStatBeforePesantagePredict(Team idTeam, GameEntry idGame, Date date) {
+        GameDAO gameDao = new GameDAO();
+
+        //получаю игроков предыдущей игры данной команды
+        ArrayList<Player> listOfPlayer = gameDao.getPlayers(idTeam, idGame);
+        for (int j = 0; j < listOfPlayer.size(); j++) {
+
+            if (listOfPlayer.get(j) != null) {
+                int idPplayer = listOfPlayer.get(j).getID();
+                ArrayList<Double> playerGameLogs =
+                        gameDao.getPreviousStatOfEachPlayerPercent(idPplayer, idTeam, date);
+
+                for (int i = 0; i < playerGameLogs.size(); i++) {
+                    Predict.xPredict.append(playerGameLogs.get(i) + " ");
+                }
+
+            } else {
+                Predict.xPredict.append(0 + " " + 0 + " " + 0 + " ");
+            }
+
+        }
     }
 
     private void writeDataForPredict(Team teamHome, Team teamAway, Date date) {
@@ -59,16 +99,17 @@ public class NewWay {
     private void saveStatisticsForLearning(int deepLearning, Date date) {
         yLine = 1;
         xLine = 1;
-        List<Game> listOfGame = new GameEntryDao().getListBeforeDate(date);
-        System.out.println("game "+ listOfGame.size());
+        List<GameEntry> listOfGame = new GameEntryDao().getListBeforeDate(date);
+        System.out.println("game "+ listOfGame.size() + " before date " + date.toString());
         for (int i = 0; i < listOfGame.size(); i++){
             List<Team> listTeamsOfGame = getTeamsOfThisGame(listOfGame.get(i));
+            System.out.println(" в игре участвовало " + listTeamsOfGame.size() + " команды");
             for(int j = 0; j < listTeamsOfGame.size(); j++){
                 iteration = 0;
                 System.out.println("Ищем предыдущие игры команды " + listTeamsOfGame.get(j).getID() + " для игры " +
                          listOfGame.get(i).getId());
                 //getPreviousStatGameForTeam(listTeamsOfGame.get(j), listOfGame.get(i));
-                getStatBefore(listTeamsOfGame.get(j), listOfGame.get(i), date);
+                getStatBeforePesantage(listTeamsOfGame.get(j), listOfGame.get(i), date);
             }
                 getScoreOfGame(y, listOfGame.get(i).getId());
                 X.append(System.getProperty("line.separator"));
@@ -99,7 +140,7 @@ public class NewWay {
         }
     }
 
-    private void getScoreOfGame(StringBuilder y, int idGame){
+     void getScoreOfGame(StringBuilder y, int idGame){
         score = new GameDAO().getScore(idGame);
         if (score < 0){
             y.append("2");
@@ -202,7 +243,7 @@ public class NewWay {
 
 
 
-    private void getStatBefore(Team idTeam, Game idGame, Date date) {
+    private void getStatBefore(Team idTeam, GameEntry idGame, Date date) {
 
         GameDAO gameDao = new GameDAO();
 
@@ -272,6 +313,30 @@ public class NewWay {
                         + " " + faceOffLossesHome + " " + faceOffWinsHome  + " "  + lossesHome  + " " );
                 X.append(goalsHome + " " + plusMinusHome + " "  + assistHome + " "  + hitsHome
                         + " " + faceOffLossesHome + " " + faceOffWinsHome  + " "  + lossesHome  + " " );
+            }
+
+        }
+    }
+
+    private void getStatBeforePesantage(Team idTeam, GameEntry idGame, Date date) {
+
+        GameDAO gameDao = new GameDAO();
+
+        //получаю игроков предыдущей игры данной команды
+        ArrayList<Player> listOfPlayer = gameDao.getPlayers(idTeam, idGame);
+        for(int j = 0; j < listOfPlayer.size(); j++){
+
+            if(listOfPlayer.get(j) != null){
+                int idPplayer = listOfPlayer.get(j).getID();
+                ArrayList<Double> playerGameLogs =
+                        gameDao.getPreviousStatOfEachPlayerPercent(idPplayer, idTeam, date);
+
+                for(int i = 0; i < playerGameLogs.size(); i++){
+                    X.append(playerGameLogs.get(i) + " ");
+                }
+
+            }else {
+                X.append(0 + " " + 0 + " "  + 0 + " ");
             }
 
         }
@@ -369,7 +434,7 @@ public class NewWay {
      * @param gameEntry
      * @return
      */
-    private List<Team> getTeamsOfThisGame(Game gameEntry) {
+    private List<Team> getTeamsOfThisGame(GameEntry gameEntry) {
         Team homeTeam = gameEntry.getHomeTeam();
         Team awayTeam = gameEntry.getAwayTeam();
         System.out.println("в игре учоствовали: дома - " + homeTeam.getID() + " гости " + awayTeam.getID());
