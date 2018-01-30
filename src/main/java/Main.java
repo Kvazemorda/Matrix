@@ -1,10 +1,14 @@
 import Services.HibernateSessionFactory;
 import com.google.gson.Gson;
+import respond.fullgameschedule.RootSchedule;
 import respond.playersgamelogs.PlayerGameLogs;
 import respond.playersgamelogs.PlayersLogs;
 import respond.playersgamelogs.RootJson;
+import setData.DAO.GameEntryDao;
 import setData.DAO.PlayerLogsDao;
 import setData.TeamAndPeriod;
+import urlquery.QueryToSportFeed;
+import urlquery.UrlQuery;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -13,8 +17,8 @@ import java.util.ArrayList;
 public class Main {
     public static void main(String[] args) {
 
-      createDataBase();
-     //   createDataBaseFromFile();
+        createDataBase();
+ //     createDataBaseFromFile();
         HibernateSessionFactory.shutdown();
     }
 
@@ -29,8 +33,12 @@ public class Main {
                 String period = listOfPeriod.get(i);
                 loadFromFolder(teamName+"-"+period);
             }
+            QueryToSportFeed queryToSportFeed = new QueryToSportFeed(new UrlQuery());
+            RootSchedule rootSchedule = queryToSportFeed.getRootGameSchedule(listOfPeriod.get(i)+"-regular");
+            System.out.println(rootSchedule.toString());
+            GameEntryDao gameEntryDao = new GameEntryDao();
+            gameEntryDao.saveListGame(rootSchedule.getFullGameSchedule().getGameentry());
         }
-
     }
 
     private static void createDataBase() {
@@ -61,6 +69,11 @@ public class Main {
                     saveTeam(playergamelogs, teamName+"-"+period);
 
                 }
+                QueryToSportFeed queryToSportFeed = new QueryToSportFeed(new UrlQuery());
+                RootSchedule rootSchedule = queryToSportFeed.getRootGameSchedule(listOfPeriod.get(i)+"-regular");
+                System.out.println(rootSchedule.toString());
+                GameEntryDao gameEntryDao = new GameEntryDao();
+                gameEntryDao.saveListGame(rootSchedule.getFullGameSchedule().getGameentry());
             }
 
     }

@@ -50,7 +50,7 @@ public class Team implements Serializable {
     }
 
     @Id
-    @Column(name = "ID", insertable = false, updatable = false)
+    @Column(name = "ID", insertable = false, updatable = false, unique = true)
     public int getID() {
         return ID;
     }
@@ -138,7 +138,7 @@ public class Team implements Serializable {
         return ID;
     }
 
-    @OneToMany(mappedBy="team")
+    @OneToMany(mappedBy="team", cascade = CascadeType.ALL)
     public List<PlayerGameLogs> getPlayerGameLogsesTeam() {
         return playerGameLogsesTeam;
     }

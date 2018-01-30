@@ -88,7 +88,7 @@ public class Game implements Serializable {
     }
 
 
-    @OneToMany(mappedBy="game")
+    @OneToMany(mappedBy="game", cascade = CascadeType.ALL)
     public List<PlayerGameLogs> getPlayerGameLogsesGame() {
         return playerGameLogsesGame;
     }

@@ -38,7 +38,28 @@ public class NewWay {
         Predict.xPredict.append(System.getProperty("line.separator"));
     }
 
+    public NewWay(Date date){
+        writeDataForPredictPercentTeam(date);
+        Predict.xPredict.append(System.getProperty("line.separator"));
+    }
+
     private void writeDataForPredictPercent(Date date) {
+        List<GameEntry> listOfGame = new GameEntryDao().getListGameTodayDate(date);
+        System.out.println("game количество "+ listOfGame.size() + " today  " + date.toString());
+        for (int i = 0; i < listOfGame.size(); i++){
+            List<Team> listTeamsOfGame = getTeamsOfThisGame(listOfGame.get(i));
+            System.out.println(" в игре участвовало " + listTeamsOfGame.size() + " команды");
+            for(int j = 0; j < listTeamsOfGame.size(); j++){
+                iteration = 0;
+                System.out.println("Ищем предыдущие игры команды " + listTeamsOfGame.get(j).getID() + " для игры " +
+                        listOfGame.get(i).getId());
+                getStatBeforePesantagePredict(listTeamsOfGame.get(j), listOfGame.get(i), date);
+            }
+            Predict.xPredict.append(System.getProperty("line.separator"));
+        }
+    }
+
+    private void writeDataForPredictPercentTeam(Date date) {
         List<GameEntry> listOfGame = new GameEntryDao().getListGameTodayDate(date);
         System.out.println("game количество "+ listOfGame.size() + " today  " + date.toString());
         for (int i = 0; i < listOfGame.size(); i++){

@@ -305,7 +305,7 @@ public class Stats implements Serializable {
         FaceoffPercent = faceoffPercent;
     }
 
-    @OneToMany(mappedBy="stats")
+    @OneToMany(mappedBy="stats", cascade = CascadeType.ALL)
     public List<PlayerGameLogs> getPlayerGameLogsesStats() {
         return playerGameLogsesStats;
     }

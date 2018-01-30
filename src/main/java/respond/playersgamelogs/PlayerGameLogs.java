@@ -24,7 +24,7 @@ public class PlayerGameLogs implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID", nullable = false, insertable = false)
+    @Column(name = "ID", nullable = false, insertable = false, unique = true)
     public int getId() {
         return id;
     }
@@ -77,5 +77,28 @@ public class PlayerGameLogs implements Serializable {
                 ", team=" + team +
                 ", stats=" + stats +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PlayerGameLogs that = (PlayerGameLogs) o;
+
+        if (game != null ? !game.equals(that.game) : that.game != null) return false;
+        if (player != null ? !player.equals(that.player) : that.player != null) return false;
+        if (team != null ? !team.equals(that.team) : that.team != null) return false;
+        return stats != null ? stats.equals(that.stats) : that.stats == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = game != null ? game.hashCode() : 0;
+        result = 31 * result + (player != null ? player.hashCode() : 0);
+        result = 31 * result + (team != null ? team.hashCode() : 0);
+        result = 31 * result + (stats != null ? stats.hashCode() : 0);
+        return result;
     }
 }

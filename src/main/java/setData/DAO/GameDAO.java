@@ -7,7 +7,6 @@ import respond.fullgameschedule.GameEntry;
 import respond.playersgamelogs.*;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 
 public class GameDAO {
@@ -152,24 +151,22 @@ public class GameDAO {
 
         for(Game game: games){
             int score = getScore(game.getId());
-            long diff = Math.abs(gameCurrent.getTime() - game.getDate().getTime());
-            long diffDays = diff / (24 * 60 * 60 * 1000);
             if(game.getHomeTeam().equals(idTeam)){
 
                 if (score < 0){
-                    lose = lose + 1/diff;
+                    lose++;
                 }else if((score) > 0){
-                    win = win + 1/diff;
+                    win++;
                 }else {
-                    draw = draw + 1/draw;
+                    draw++;
                 }
             }else {
                 if (score < 0){
-                    win = win + 1/diff;
+                    win++;
                 }else if((score) > 0){
-                    win = win + 1/diff;
+                    lose++;
                 }else {
-                    draw = draw + 1/draw;
+                    draw++;
                 }
             }
 

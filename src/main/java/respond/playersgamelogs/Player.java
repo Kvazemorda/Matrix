@@ -8,7 +8,6 @@ import java.util.List;
 @Entity
 @Table(name = "Player", schema = "PUBLIC", catalog = "gamelogs")
 public class Player implements Serializable {
-    int id;
     int ID;
     String LastName;
     String FirstName;
@@ -60,21 +59,9 @@ public class Player implements Serializable {
                 '}';
     }
 
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID", nullable = false, insertable = false)
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-
-
-    @Basic
-    @Column(name = "IDPlayer")
+    @Column(name = "IDPlayer", unique = true)
     public int getID() {
         return ID;
     }
@@ -188,7 +175,7 @@ public class Player implements Serializable {
         IsRookie = rookie;
     }
 
-    @OneToMany(mappedBy="player")
+    @OneToMany(mappedBy="player", cascade = CascadeType.ALL)
     public List<PlayerGameLogs> getPlayerGameLogsesPlayer() {
         return playerGameLogsesPlayer;
     }

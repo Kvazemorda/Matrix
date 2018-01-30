@@ -16,7 +16,7 @@ public class PlayerLogsDao {
 
     public void save(ArrayList<PlayerGameLogs> playerGameLogs) {
             for (PlayerGameLogs playerLogs : playerGameLogs) {
-                if(playerLogs != null) {
+                if(playerLogs != null && !existPlayerLogs(playerLogs)) {
                     System.out.printf("игра " + playerLogs.getGame().getId());
                     session.beginTransaction();
                     Game game = playerLogs.getGame();
@@ -26,7 +26,10 @@ public class PlayerLogsDao {
                     session.saveOrUpdate(awayTeam);
                     session.saveOrUpdate(game);
                     Player player = playerLogs.getPlayer();
-                    session.saveOrUpdate(player);
+                    if(!checkPlayer(player)){
+                        session.saveOrUpdate(player);
+                    }
+
                     Stats stats = playerLogs.getStats();
                     session.saveOrUpdate(stats);
                     session.saveOrUpdate(playerLogs);
@@ -46,5 +49,32 @@ public class PlayerLogsDao {
                 }
                 session.clear();
         }
+    }
+
+    private boolean existPlayerLogs(PlayerGameLogs playerGameLogs) {
+        String hql = " select player from PlayerGameLogs player " +
+                "where player.player.ID = :player " +
+                "and player.game.id = :game " +
+                "and player.stats.id = :stat " +
+                "and player.team.id = :team";
+
+        Query query = session.createQuery(hql);
+        query.setParameter("player", playerGameLogs.getPlayer().getID());
+        query.setParameter("game", playerGameLogs.getGame().getId());
+        query.setParameter("stat", playerGameLogs.getStats().getId());
+        query.setParameter("team", playerGameLogs.getTeam().getID());
+
+        return query.list().size() > 0;
+
+    }
+
+    private boolean checkPlayer(Player player) {
+        String hql = " select player from Player player " +
+                "where player.ID = :player";
+
+        Query query = session.createQuery(hql);
+        query.setParameter("player", player.getID());
+
+        return query.list().size() > 0;
     }
 }
