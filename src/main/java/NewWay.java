@@ -39,8 +39,48 @@ public class NewWay {
     }
 
     public NewWay(Date date){
-        writeDataForPredictPercentTeam(date);
-        Predict.xPredict.append(System.getProperty("line.separator"));
+       // writeDataForPredictPercentTeam(date);
+        writeDataForPredictTotalGoal(date);
+    }
+
+    private void writeDataForPredictTotalGoal(Date date) {
+        List<GameEntry> listOfGame = new GameEntryDao().getListGameTodayDate(date);
+        System.out.println("game количество "+ listOfGame.size() + " today  " + date.toString());
+        for (int i = 0; i < listOfGame.size(); i++){
+            List<Team> listTeamsOfGame = getTeamsOfThisGame(listOfGame.get(i));
+            System.out.println(" в игре участвовало " + listTeamsOfGame.size() + " команды");
+            for(int j = 0; j < listTeamsOfGame.size(); j++){
+                iteration = 0;
+                System.out.println("Ищем предыдущие игры команды " + listTeamsOfGame.get(j).getID() + " для игры " +
+                        listOfGame.get(i).getId());
+                getStatBeforePesantagePredict(listTeamsOfGame.get(j), listOfGame.get(i), date);
+            }
+            getScoreOfGameTotalGoal(Alesha.y, listOfGame.get(i).getId());
+            Alesha.y.append(System.getProperty("line.separator"));
+            Alesha.xPredictTrain.append(System.getProperty("line.separator"));
+            Alesha.createFiles();
+            Alesha.saveFiles();
+        }
+    }
+
+    private void getScoreOfGameTotalGoal(StringBuilder y, int id) {
+        score = new GameDAO().getScoreRange(id);
+        y.append(score);
+    }
+
+    private void getStatBeforeTotalGoal(Team team, Date date) {
+        GameDAO gameDao = new GameDAO();
+
+        ArrayList<Double> playerGameLogs =
+                gameDao.getPreviousStatOfEachTeamTotalGoal(team, date);
+
+        for (int i = 0; i < playerGameLogs.size(); i++) {
+            try{
+                Alesha.xPredictTrain.append(playerGameLogs.get(i) + " ");
+            }catch (NullPointerException e){
+                Alesha.xPredictTrain.append(0 + " ");
+            }
+        }
     }
 
     private void writeDataForPredictPercent(Date date) {
@@ -56,6 +96,7 @@ public class NewWay {
                 getStatBeforePesantagePredict(listTeamsOfGame.get(j), listOfGame.get(i), date);
             }
             Predict.xPredict.append(System.getProperty("line.separator"));
+
         }
     }
 
@@ -66,12 +107,29 @@ public class NewWay {
             List<Team> listTeamsOfGame = getTeamsOfThisGame(listOfGame.get(i));
             System.out.println(" в игре участвовало " + listTeamsOfGame.size() + " команды");
             for(int j = 0; j < listTeamsOfGame.size(); j++){
-                iteration = 0;
                 System.out.println("Ищем предыдущие игры команды " + listTeamsOfGame.get(j).getID() + " для игры " +
                         listOfGame.get(i).getId());
-                getStatBeforePesantagePredict(listTeamsOfGame.get(j), listOfGame.get(i), date);
+                getStatBeforePersantagePredictTeam(listTeamsOfGame.get(j), listOfGame.get(i), date);
             }
-            Predict.xPredict.append(System.getProperty("line.separator"));
+            getScoreOfGameTeam(Alesha.y, listOfGame.get(i).getId());
+            //System.out.println(" игра " +  listOfGame.get(i).getId() + " счет " + " " + score );
+            Alesha.y.append(System.getProperty("line.separator"));
+            Alesha.xPredictTrain.append(System.getProperty("line.separator"));
+        }
+    }
+
+    private void getStatBeforePersantagePredictTeam(Team idTeam, GameEntry idGame, Date date) {
+        GameDAO gameDao = new GameDAO();
+
+        ArrayList<Double> playerGameLogs =
+                gameDao.getPreviousStatOfEachPlayerPercentTeam(idTeam, date);
+
+        for (int i = 0; i < playerGameLogs.size(); i++) {
+            try{
+                Alesha.xPredictTrain.append(playerGameLogs.get(i) + " ");
+            }catch (NullPointerException e){
+                Alesha.xPredictTrain.append(0 + " ");
+            }
         }
     }
 
@@ -88,13 +146,12 @@ public class NewWay {
                         gameDao.getPreviousStatOfEachPlayerPercent(idPplayer, idTeam, date);
 
                 for (int i = 0; i < playerGameLogs.size(); i++) {
-                    Predict.xPredict.append(playerGameLogs.get(i) + " ");
+                    Alesha.xPredictTrain.append(playerGameLogs.get(i) + " ");
                 }
 
             } else {
-                Predict.xPredict.append(0 + " " + 0 + " " + 0 + " ");
+                Alesha.xPredictTrain.append(0 + " " + 0 + " " + 0 + " ");
             }
-
         }
     }
 
@@ -173,21 +230,34 @@ public class NewWay {
         yScore.append(score + " ");
     }
 
+    void getScoreOfGameTeam(StringBuilder y, int idGame){
+        score = new GameDAO().getScore(idGame);
+        if (score < 0){
+            y.append("2");
+        }else if((score) > 0){
+            y.append("1");
+        }else {
+            y.append("3");
+        }
+    }
+
     /**
      * Метод собирает статистику по игрокам двух команд из предыдущие игры
-     * @param idTeam id команды по которой ищем предыдущую игру
-     * @param idGame id игры перед которой надо начать собирать статистику
+     * @param idTeam id команды по которой ищем предыдущую игр
      * StringBuilder - сохраняем часть строки параметров для обучения Алеши
      */
-    private void getPreviousStatGameForTeam(Team idTeam, Game idGame) {
+    private void getPreviousStatGameForTeam(Team idTeam, Date date) {
         GameDAO gameDao = new GameDAO();
         Team idHome = null;
         Team idAway = null;
         Game idGameBefore = null;
         //получаю игроков предыдущей игры данной команды
-        ArrayList<PlayerGameLogs> playerGameLogs =  gameDao.getPreviousPlayersOfGame(idTeam, idGame);
-     //   if(iteration < 2){
+        ArrayList<PlayerGameLogs> playerGameLogs =  gameDao.getPreviousPlayersOfGame(idTeam, date);
+        if(iteration < 2) {
             System.out.println("игроков в предыдущей игре было " + playerGameLogs.size());
+            int total = 0;
+
+            for (int i = 0; i < playerGameLogs.size(); i++) {
             int goalsHome = 0;
             int plusMinusHome = 0;
             int assistHome = 0;
@@ -206,33 +276,35 @@ public class NewWay {
 
             UnitStat unitStat = new UnitStat();
             unitStat.setText("0");
+            Stats stats = new Stats();
+//            Date dateNextPrevious = playerGameLogs.get(0).getGame().getDate();
 
-            for(int i = 0; i < playerGameLogs.size(); i++){
-                Stats stats = playerGameLogs.get(i).getStats();
-                if(stats.getGoals() == null) {
-                    stats.setGoals(unitStat);
-                }
-                if(stats.getPlusMinus() == null){
-                    stats.setPlusMinus(unitStat);
-                }
-                if(stats.getFaceoffLosses() == null){
-                    stats.setFaceoffLosses(unitStat);
-                }
-                if(stats.getFaceoffWins() == null){
-                    stats.setFaceoffWins(unitStat);
-                }
-                if(stats.getAssists() == null){
-                    stats.setAssists(unitStat);
-                }
-                if(stats.getLosses() == null){
-                    stats.setLosses(unitStat);
-                }
-                if(stats.getHits() == null){
-                    stats.setHits(unitStat);
-                }
-                idGameBefore = playerGameLogs.get(i).getGame();
-                if(playerGameLogs.get(i).getTeam().equals(playerGameLogs.get(i).getGame().getHomeTeam())){
-                    idHome = playerGameLogs.get(i).getTeam();
+
+                if(playerGameLogs.get(i) != null) {
+                    stats = playerGameLogs.get(i).getStats();
+                    if (stats.getGoals() == null) {
+                        stats.setGoals(unitStat);
+                    }
+                    if (stats.getPlusMinus() == null) {
+                        stats.setPlusMinus(unitStat);
+                    }
+                    if (stats.getFaceoffLosses() == null) {
+                        stats.setFaceoffLosses(unitStat);
+                    }
+                    if (stats.getFaceoffWins() == null) {
+                        stats.setFaceoffWins(unitStat);
+                    }
+                    if (stats.getAssists() == null) {
+                        stats.setAssists(unitStat);
+                    }
+                    if (stats.getLosses() == null) {
+                        stats.setLosses(unitStat);
+                    }
+                    if (stats.getHits() == null) {
+                        stats.setHits(unitStat);
+                    }
+                    if (playerGameLogs.get(i).getTeam().equals(playerGameLogs.get(i).getGame().getHomeTeam())) {
+                        idHome = playerGameLogs.get(i).getTeam();
                         goalsHome = getIntFromString(goalsHome, stats.getGoals().getText());
                         plusMinusHome = getIntFromString(plusMinusHome, stats.getPlusMinus().getText());
                         assistHome = getIntFromString(assistHome, stats.getAssists().getText());
@@ -240,26 +312,33 @@ public class NewWay {
                         faceOffLossesHome = getIntFromString(faceOffLossesHome, stats.getFaceoffLosses().getText());
                         faceOffWinsHome = getIntFromString(faceOffWinsHome, stats.getFaceoffWins().getText());
                         lossesHome = getIntFromString(lossesHome, stats.getLosses().getText());
-                    }else {
+                    } else {
                         idAway = playerGameLogs.get(i).getTeam();
-                        goalsAway = getIntFromString(goalsAway ,stats.getGoals().getText());
-                        plusMinusAway = getIntFromString(plusMinusAway ,stats.getPlusMinus().getText());
-                        assistAway = getIntFromString(assistAway ,stats.getAssists().getText());
-                        hitsAway = getIntFromString(hitsAway ,stats.getHits().getText());
-                        faceOffLossesAway = getIntFromString(faceOffLossesAway ,stats.getFaceoffLosses().getText());
+                        goalsAway = getIntFromString(goalsAway, stats.getGoals().getText());
+                        plusMinusAway = getIntFromString(plusMinusAway, stats.getPlusMinus().getText());
+                        assistAway = getIntFromString(assistAway, stats.getAssists().getText());
+                        hitsAway = getIntFromString(hitsAway, stats.getHits().getText());
+                        faceOffLossesAway = getIntFromString(faceOffLossesAway, stats.getFaceoffLosses().getText());
                         faceOffWinsAway = getIntFromString(faceOffWinsAway, stats.getFaceoffWins().getText());
-                        lossesAway = getIntFromString(lossesAway ,stats.getLosses().getText());
+                        lossesAway = getIntFromString(lossesAway, stats.getLosses().getText());
                     }
+                }
+                System.out.print("home " + goalsHome + " " + plusMinusHome + " " + assistHome + " " + hitsHome
+                        + " " + faceOffLossesHome + " " + faceOffWinsHome + " " + lossesHome + " ");
+                System.out.print("away " + goalsAway + " " + plusMinusAway + " " + assistAway + " " + hitsAway
+                        + " " + faceOffLossesAway + " " + faceOffWinsAway + " " + lossesAway + " ");
+                Alesha.xPredictTrain.append(goalsHome + " " + plusMinusHome + " " + assistHome + " " + hitsHome
+                        + " " + faceOffLossesHome + " " + faceOffWinsHome + " " + lossesHome + " ");
+                Alesha.xPredictTrain.append(goalsAway + " " + plusMinusAway + " " + assistAway + " " + hitsAway
+                        + " " + faceOffLossesAway + " " + faceOffWinsAway + " " + lossesAway + " ");
+                total += goalsAway + goalsHome;
             }
-            System.out.println("home " + + goalsHome + " " + plusMinusHome + " "  + assistHome + " "  + hitsHome
-                    + " " + faceOffLossesHome + " " + faceOffWinsHome  + " "  + lossesHome  + " " );
-            System.out.println("away " + goalsAway + " " + plusMinusAway + " "  + assistAway + " "  + hitsAway
-                    + " " + faceOffLossesAway + " " + faceOffWinsAway  + " "  + lossesAway  + " " );
-            X.append(goalsHome + " " + plusMinusHome + " "  + assistHome + " "  + hitsHome
-                    + " " + faceOffLossesHome + " " + faceOffWinsHome  + " "  + lossesHome  + " " );
-            X.append(goalsAway + " " + plusMinusAway + " "  + assistAway + " "  + hitsAway
-                    + " " + faceOffLossesAway + " " + faceOffWinsAway  + " "  + lossesAway  + " " );
+            Alesha.xPredictTrain.append(total + " ");
+         //   iteration++;
+         //   getPreviousStatGameForTeam(idHome, dateNextPrevious);
+          //  getPreviousStatGameForTeam(idAway, dateNextPrevious);
 
+        }
     }
 
 
@@ -445,7 +524,7 @@ public class NewWay {
 
     private int getIntFromString(int plus, String text){
         if(text != null){
-            return (int) (Double.valueOf(text) + plus);
+            return (int) (Double.valueOf(text) + 0);
         }else{
             return plus;
         }
